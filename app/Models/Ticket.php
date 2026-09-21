@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Tickets extends Model
+class Ticket extends Model
 {
     protected $fillable = ['order_id', 'event_id', 'price', 'status'];
 

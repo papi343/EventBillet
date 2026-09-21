@@ -4,9 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Orders extends Model
+class Order extends Model
 {
-    //
+    
+protected $fillable = ['event_id','quantity','total_amount','status'];
+
  public	function user(): BelongsTo{
 return	$this->belongsTo(User::class);
 }

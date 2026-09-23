@@ -1,11 +1,12 @@
 <?php
 
-namespace App;
+namespace App\Enums;
 
 enum EventStatus: string {
-    case pending = "pending";
-    case published = "published";
-    case cancelled = "cancelled";
+    case Draft = "draft";
+    case Pending = "pending";
+    case Published = "published";
+    case Cancelled = "cancelled";
 }
 
 

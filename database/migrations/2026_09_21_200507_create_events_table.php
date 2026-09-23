@@ -24,7 +24,7 @@ return new class extends Migration
             $table->decimal('price');
             $table->integer("total_seats");
             $table->integer('available_seats');
-            $table->enum("status",["pending","published","cancelled"])->default("pending");
+            $table->enum("status", ["draft", "pending", "published", "cancelled"])->default("draft");
             $table->timestamps();
         });
     }

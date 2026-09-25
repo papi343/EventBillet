@@ -3,11 +3,12 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Http\Requests\Api\V1\StoreCategoryRequest;
 use App\Http\Requests\Api\V1\UpdateCategoryRequest;
 use App\Http\Resources\Api\V1\CategoryResource;
 use App\Models\Category;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class CategoryController extends Controller
 {
@@ -29,6 +30,8 @@ class CategoryController extends Controller
      */
     public function store(StoreCategoryRequest $request)
     {
+        Gate::authorize('create', Category::class);
+
         $category = Category::create($request->validated());
 
         if ($category) {
@@ -73,6 +76,8 @@ class CategoryController extends Controller
         $category = Category::find($id);
 
         if ($category) {
+            Gate::authorize('update', $category);
+
             $category->update($request->validated());
 
             return response()->json([
@@ -101,6 +106,8 @@ class CategoryController extends Controller
                 "message" => "Category not found",
             ], 404);
         }
+
+        Gate::authorize('delete', $category);
 
         if ($category->events()->exists()) {
             return response()->json([

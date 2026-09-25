@@ -2,6 +2,8 @@
 
 namespace App\Policies;
 
+use App\Enums\EventStatus;
+use App\Enums\UserRole;
 use App\Models\Event;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;

@@ -9,6 +9,7 @@ use App\Http\Resources\Api\V1\EventResource;
 use App\Models\Event;
 use App\Services\EventService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class EventController extends Controller
 {
@@ -36,6 +37,8 @@ class EventController extends Controller
      */
     public function store(StoreEventRequest $request)
     {
+        Gate::authorize('create', Event::class);
+
         $event = $this->eventService->create(
             $request->validated(),
             $request->user(),
@@ -57,6 +60,8 @@ class EventController extends Controller
     {
         $event = Event::with(['organizer', 'category'])->findOrFail($id);
 
+        Gate::authorize('view', $event);
+
         return response()->json([
             "success" => true,
             "data" => new EventResource($event),
@@ -69,6 +74,8 @@ class EventController extends Controller
     public function update(UpdateEventRequest $request, string $id)
     {
         $event = Event::findOrFail($id);
+
+        Gate::authorize('update', $event);
 
         $updatedEvent = $this->eventService->update(
             $event,
@@ -90,6 +97,9 @@ class EventController extends Controller
     public function destroy(string $id)
     {
         $event = Event::findOrFail($id);
+
+        Gate::authorize('delete', $event);
+
         $this->eventService->delete($event);
 
         return response()->json([

@@ -22,14 +22,20 @@ class StripeWebhookController extends Controller
                 break;
                 
                 default: 
-                return response()->json(['message' => 'Unknown event type']);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unknown event type']);
             }
             
         }catch (\Stripe\Exception\SignatureVerificationException $e) {
             
-            return response()->json(['message' => 'Invalid signature']);
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid signature']);
         }
-        return response()->json(['message' => 'Webhook received']);
+        return response()->json([
+            'success' => true,
+            'message' => 'Webhook received']);
     }
 
     public function handlePaymentIntentSucceeded($paymentIntent){
@@ -49,7 +55,10 @@ class StripeWebhookController extends Controller
          $order->update([
             'status' => OrderStatus::paid,
          ]);
-
-        return response()->json(['message' => 'Payment intent succeeded']);
+        OrderPaid::dispatch($order); //Dispatch event to generate tickets
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Payment intent succeeded']);
     }
 }

@@ -16,7 +16,7 @@ class EventService
        
         $data['slug'] = $this->generateUniqueSlug($data['title']);
         $data['available_seats'] = $data['total_seats'];
-        $data['status'] = EventStatus::Draft;
+        $data['status'] = $data['status'] ?? EventStatus::Published;
 
         if ($image) {
             $data['image'] = $image->store('events', 'public');

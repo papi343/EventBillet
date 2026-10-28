@@ -23,7 +23,7 @@ class OrderService
                 'user_id' => $user->id,
                 'quantity' => $quantity,
                 'total_amount' => $event->price * $quantity,
-                'status' => OrderStatus::Pending,
+                'status' => OrderStatus::pending,
                 'expire_at' => now()->addMinutes(10),
             ]);
 
@@ -34,24 +34,22 @@ class OrderService
 
     public function cancelOrder(Order $order): void {
         DB::transaction(function() use ($order) {
-            if ($order->status === OrderStatus::Paid) {
+            if ($order->status === OrderStatus::paid || $order->status === OrderStatus::pending) {
                 $order->event()->increment('available_seats', $order->quantity);
             }
-            $order->update(['status' => OrderStatus::Refunded]);
+            $order->update(['status' => OrderStatus::refunded]);
         });
     }
 
     public function expirePending(Order $order): void {
         DB::transaction(function() use ($order) {
-            // utiliser lockForUpdate pour éviter que l'utilisateur termine de payer au même moment
-            // que le job tente d'annuler
             $lockedOrder = Order::lockForUpdate()->findOrFail($order->id);
 
-            if ($lockedOrder->status !== OrderStatus::Pending) {
+            if ($lockedOrder->status !== OrderStatus::pending) {
                 return;
             }
             $lockedOrder->event()->increment('available_seats', $lockedOrder->quantity);
-            $lockedOrder->update(['status' => OrderStatus::Failed]);
+            $lockedOrder->update(['status' => OrderStatus::failed]);
         });
     }
 }

@@ -4,9 +4,12 @@ use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\EventController;
 use App\Http\Controllers\Api\V1\OrderController;
+use App\Http\Controllers\Api\V1\PaymentController;
+use App\Http\Controllers\Api\V1\StripeWebhookController;
 use App\Http\Controllers\Api\V1\TicketController;
 use App\Http\Controllers\Api\V1\TicketScanController;
-use App\Http\Controllers\StripeWebhookController;
+use App\Http\Controllers\Api\V1\UserController;
+use App\Http\Resources\Api\V1\UserResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -25,8 +28,9 @@ Route::prefix('v1')->group(function () {
     // Authenticated routes
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/user', function (Request $request) {
-            return $request->user();
+            return new UserResource($request->user());
         });
+        Route::post('/logout', [AuthController::class, 'logout']);
 
         // Category management
         Route::post('/categories', [CategoryController::class, 'store']);
@@ -38,12 +42,17 @@ Route::prefix('v1')->group(function () {
         Route::put('/events/{event}', [EventController::class, 'update']);
         Route::delete('/events/{event}', [EventController::class, 'destroy']);
 
-        // Orders
+        // Orders & Checkout
         Route::apiResource('orders', OrderController::class)->except(['update']);
+        Route::post('/orders/{order}/checkout', [PaymentController::class, 'checkout']);
+        Route::post('/orders/{order}/confirm-payment', [PaymentController::class, 'confirm']);
 
         // Tickets & Ticket Scanning
         Route::get('/tickets', [TicketController::class, 'index']);
         Route::get('/tickets/{ticket}', [TicketController::class, 'show']);
         Route::post('/tickets/scan', [TicketScanController::class, 'scan']);
+
+        // Users (Admin)
+        Route::get('/users', [UserController::class, 'index']);
     });
 });

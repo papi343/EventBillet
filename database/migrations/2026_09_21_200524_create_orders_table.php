@@ -19,7 +19,7 @@ return new class extends Migration
             $table->decimal('total_amount');
             $table->enum('status', ['pending', 'paid', 'failed', 'refunded'])->default('pending');
             $table->timestamps();
-            $table->timestamps('expire_at')->nullable();
+            $table->timestamp('expire_at')->nullable();
         });
     }
 

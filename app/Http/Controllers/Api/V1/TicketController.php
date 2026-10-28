@@ -9,7 +9,6 @@ use App\Models\Ticket;
 use App\Services\TicketService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Gate;
 
 class TicketController extends Controller
@@ -18,10 +17,7 @@ class TicketController extends Controller
         private readonly TicketService $ticketService
     ) {}
 
-    /**
-     * Display a listing of tickets accessible by the authenticated user.
-     */
-    public function index(Request $request): AnonymousResourceCollection
+    public function index(Request $request): JsonResponse
     {
         Gate::authorize('viewAny', Ticket::class);
 
@@ -41,13 +37,10 @@ class TicketController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => TicketResource::collection($tickets)
+            'data' => TicketResource::collection($tickets),
         ], 200);
     }
 
-    /**
-     * Display details of a specific ticket.
-     */
     public function show(Ticket $ticket): JsonResponse
     {
         Gate::authorize('view', $ticket);

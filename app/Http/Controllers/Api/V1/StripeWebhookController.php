@@ -1,64 +1,75 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api\V1;
 
+use App\Enums\OrderStatus;
+use App\Enums\PaymentStatus;
+use App\Events\OrderPaid;
+use App\Http\Controllers\Controller;
+use App\Models\Order;
 use Illuminate\Http\Request;
+use Stripe\Webhook;
 
 class StripeWebhookController extends Controller
 {
-    //
-
-    public function handle(Request $request){
-
-        try{
-            $evnt = webhook::constructEvent(
+    public function handle(Request $request)
+    {
+        try {
+            $event = Webhook::constructEvent(
                 $request->getContent(),
                 $request->headers->get('stripe-signature'),
                 config('services.stripe.webhook_secret')
             );
-            switch($event->type){
-                case 'payment_intent.succeeded' : 
-                $this->handlePaymentIntentSucceeded($event);
-                break;
-                
-                default: 
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Unknown event type']);
+
+            switch ($event->type) {
+                case 'payment_intent.succeeded':
+                    $this->handlePaymentIntentSucceeded($event->data->object);
+                    break;
+
+                default:
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Unknown event type',
+                    ]);
             }
-            
-        }catch (\Stripe\Exception\SignatureVerificationException $e) {
-            
+        } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid signature']);
+                'message' => 'Invalid signature or webhook error',
+            ], 400);
         }
+
         return response()->json([
             'success' => true,
-            'message' => 'Webhook received']);
+            'message' => 'Webhook received',
+        ]);
     }
 
-    public function handlePaymentIntentSucceeded($paymentIntent){
-
+    public function handlePaymentIntentSucceeded($paymentIntent)
+    {
         $order = Order::findOrFail($paymentIntent->metadata->order_id);
-         
-         if($order->status === OrderStatus::paid){
-            return;
-         }
-         $order->payment()->create([
-            'status' => PaymentStatus::paid,
-            'currency' => $paymentIntent->currency,
-            'amount' => $paymentIntent->amount /100,
-            'stripe_payment_id' => $paymentIntent->id,
-         ]);
 
-         $order->update([
+        if ($order->status === OrderStatus::paid) {
+            return;
+        }
+
+        $order->payment()->create([
+            'status' => PaymentStatus::paid->value,
+            'currency' => $paymentIntent->currency ?? 'mad',
+            'amount' => ($paymentIntent->amount ?? 0) / 100,
+            'payment_method' => 'stripe',
+            'stripe_payment_id' => $paymentIntent->id,
+        ]);
+
+        $order->update([
             'status' => OrderStatus::paid,
-         ]);
-        OrderPaid::dispatch($order); //Dispatch event to generate tickets
-        
+        ]);
+
+        OrderPaid::dispatch($order);
+
         return response()->json([
             'success' => true,
-            'message' => 'Payment intent succeeded']);
+            'message' => 'Payment intent succeeded',
+        ]);
     }
 }

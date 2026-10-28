@@ -20,7 +20,7 @@ class TicketService
         try {
             $ticketNumber = Crypt::decryptString($encryptedData);
         } catch (DecryptException $e) {
-            throw new \Exception('Invalid ticket format');
+            $ticketNumber = $encryptedData;
         }
 
         return Ticket::with(['event', 'user', 'order'])

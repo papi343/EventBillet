@@ -15,11 +15,12 @@ return new class extends Migration
             $table->id();
             $table->foreignId('organizer_id')->constrained('users')->cascadeOnDelete();
             $table->string('title');
+            $table->string('slug')->unique()->nullable();
             $table->text('description');
             $table->string('location');
             $table->dateTime('start_date');
             $table->dateTime('end_date');
-            $table->string('image');
+            $table->string('image')->nullable();
             $table->foreignId('category_id')->constrained('categories')->cascadeOnDelete();
             $table->decimal('price');
             $table->integer("total_seats");

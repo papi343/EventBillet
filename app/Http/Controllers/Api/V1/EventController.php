@@ -8,7 +8,7 @@ use App\Http\Requests\Api\V1\UpdateEventRequest;
 use App\Http\Resources\Api\V1\EventResource;
 use App\Models\Event;
 use App\Services\EventService;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class EventController extends Controller
 {
@@ -16,9 +16,6 @@ class EventController extends Controller
         private readonly EventService $eventService
     ) {}
 
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         $events = Event::with(['organizer', 'category'])
@@ -31,11 +28,10 @@ class EventController extends Controller
         ], 200);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(StoreEventRequest $request)
     {
+        Gate::authorize('create', Event::class);
+
         $event = $this->eventService->create(
             $request->validated(),
             $request->user(),
@@ -50,9 +46,6 @@ class EventController extends Controller
         ], 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(string $id)
     {
         $event = Event::with(['organizer', 'category'])->findOrFail($id);
@@ -63,12 +56,11 @@ class EventController extends Controller
         ], 200);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(UpdateEventRequest $request, string $id)
     {
         $event = Event::findOrFail($id);
+
+        Gate::authorize('update', $event);
 
         $updatedEvent = $this->eventService->update(
             $event,
@@ -84,12 +76,12 @@ class EventController extends Controller
         ], 200);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(string $id)
     {
         $event = Event::findOrFail($id);
+
+        Gate::authorize('delete', $event);
+
         $this->eventService->delete($event);
 
         return response()->json([

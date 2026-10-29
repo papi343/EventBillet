@@ -13,16 +13,16 @@ class EventService
 {
     public function create(array $data, User $organiser, ?UploadedFile $image = null): Event
     {
-        $data['organizer_id'] = $organiser->id;
+       
         $data['slug'] = $this->generateUniqueSlug($data['title']);
         $data['available_seats'] = $data['total_seats'];
-        $data['status'] = EventStatus::Draft;
+        $data['status'] = $data['status'] ?? EventStatus::Published;
 
         if ($image) {
             $data['image'] = $image->store('events', 'public');
         }
 
-        return Event::create($data);
+        return $organiser->events()->create($data);
     }
 
     public function update(Event $event, array $data, ?UploadedFile $image = null): Event

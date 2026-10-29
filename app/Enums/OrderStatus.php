@@ -2,10 +2,9 @@
 
 namespace App\Enums;
 
-enum OrderStatus:string{
+enum OrderStatus: string {
     case pending = "pending";
     case paid = "paid";
-    case failed = "failled"
-    case refunded = "refunded"
-
+    case failed = "failed";
+    case refunded = "refunded";
 }
